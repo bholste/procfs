@@ -180,6 +180,7 @@ class sched(ProcessFile):
             else:
                 name, value = line.split(':')
                 name = name.strip()
+                name = name.replace('.', '_')
                 value = value.strip()
                 data[name] = value
         return data
