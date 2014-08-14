@@ -166,3 +166,20 @@ class smaps(ProcessFile):
                 value = int(value.split(' kB', 1)[0].strip())
                 result[pathname][key] = value
         return result
+
+class sched(ProcessFile):
+    """/proc/<pid>/sched"""
+
+    def _parse(self, content):
+        data = Dict()
+        line_no = 0;
+        for line in content.splitlines():
+            line_no += 1
+            if line_no < 3:
+                continue
+            else:
+                name, value = line.split(':')
+                name = name.strip()
+                value = value.strip()
+                data[name] = value
+        return data
