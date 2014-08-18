@@ -278,6 +278,13 @@ class Processes(object):
         self.__processes = processes
         return self
 
+    def pid(self, pid):
+        """Get process by pid"""
+        for process in self.all:
+            if process.id == pid:
+                return process
+        return None
+
     def __repr__(self):
         count = len(self)
         processes = str(self.all[:10])
