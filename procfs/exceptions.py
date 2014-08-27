@@ -16,10 +16,11 @@ class PathNotAFileError(Exception):
 class ProcessException(Exception):
     """Exceptions raised by process handling code"""
 
-
 class UnknownProcessError(ProcessException):
     """The process does not exist"""
 
+class UnknownTaskError(ProcessException):
+    """The task does not exist"""
 
 class NoParentProcessError(ProcessException):
     """The process has no parent process"""

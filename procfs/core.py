@@ -8,7 +8,7 @@ from datetime import datetime
 from pprint import pformat
 
 from procfs.exceptions import PathNotFoundError, UnknownProcessError, \
-    NoParentProcessError, PathNotADirectoryError, PathNotAFileError
+    NoParentProcessError, PathNotADirectoryError, PathNotAFileError, UnknownTaskError
 from procfs.utils import get_module
 
 try:
@@ -144,12 +144,14 @@ class BaseDirectory(object):
 
         # Skip /proc/<pid> from the directory path to find sub module name
         dirname_parts = dirname.split('/')
-        sub_module_name = '.'.join(dirname_parts[self._skip_path_parts:])
-
-        if sub_module_name:
-            module_name = '%s.%s' % (self._base_module, sub_module_name)
-        else:
+        if(dirname_parts[-2] == 'task'):
             module_name = self._base_module
+        else:
+            sub_module_name = '.'.join(dirname_parts[self._skip_path_parts:])
+            if sub_module_name:
+                module_name = '%s.%s' % (self._base_module, sub_module_name)
+            else:
+                module_name = self._base_module
         module = get_module(module_name)
 
         # Use filename as handler name
@@ -278,13 +280,6 @@ class Processes(object):
         self.__processes = processes
         return self
 
-    def pid(self, pid):
-        """Get process by pid"""
-        for process in self.all:
-            if process.id == pid:
-                return process
-        return None
-
     def __repr__(self):
         count = len(self)
         processes = str(self.all[:10])
@@ -357,3 +352,42 @@ class Process(ProcessDirectory):
 
     def _handle_link(self, path):
         return os.readlink(path)
+
+    @property
+    def tasks(self):
+        return Tasks(self.id)
+
+class Tasks(object):
+
+    def __init__(self, pid):
+        self._pid = pid
+        self.__tasks = None
+
+    def __call__(self, tid):
+        return Task(self._pid, tid)
+
+    def __len__(self):
+        return len(self.all)
+
+    @property
+    def all(self):
+        if self.__tasks is None:
+            return [Task(self._pid, tid) for tid in os.listdir('/proc/{}/task'.format(self._pid))
+                    if DIGIT.match(tid)]
+        else:
+            return self.__tasks
+
+class Task(ProcessDirectory):
+
+    def __init__(self, pid, tid):
+        path = '/proc/{}/task/{}'.format(pid, tid)
+        if not os.path.isdir(path):
+            raise UnknownTaskError(tid)
+        super(Task, self).__init__(tid, path)
+
+    def __repr__(self):
+        return '<Task %s: %s>' % (self._id, self.status.Name)
+
+    @property
+    def id(self):
+        return self._id
