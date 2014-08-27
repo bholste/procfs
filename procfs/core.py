@@ -377,6 +377,13 @@ class Tasks(object):
         else:
             return self.__tasks
 
+    def __repr__(self):
+        count = len(self)
+        tasks = str(self.all[:10])
+        if count > 10:
+            tasks = tasks[:-1] + ', ...]'
+        return '<Tasks: %s>' % tasks
+
 class Task(ProcessDirectory):
 
     def __init__(self, pid, tid):
