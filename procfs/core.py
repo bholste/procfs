@@ -372,8 +372,14 @@ class Tasks(object):
     @property
     def all(self):
         if self.__tasks is None:
-            return [Task(self._pid, tid) for tid in os.listdir('/proc/{}/task'.format(self._pid))
-                    if DIGIT.match(tid)]
+            tasks = []
+            for tid in os.listdir('/proc/{}/task'.format(self._pid)):
+                try:
+                    tasks.append(Task(self._pid, tid))
+                except Exception:
+                    continue
+            #self.__tasks = tasks
+            return tasks
         else:
             return self.__tasks
 
