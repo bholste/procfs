@@ -373,7 +373,7 @@ class Tasks(object):
     def all(self):
         if self.__tasks is None:
             tasks = []
-            for tid in os.listdir('/proc/{}/task'.format(self._pid)):
+            for tid in os.listdir('/proc/%s/task' % self._pid):
                 try:
                     tasks.append(Task(self._pid, tid))
                 except Exception:
@@ -393,7 +393,7 @@ class Tasks(object):
 class Task(ProcessDirectory):
 
     def __init__(self, pid, tid):
-        path = '/proc/{}/task/{}'.format(pid, tid)
+        path = '/proc/%s/task/%s' % (pid, tid)
         if not os.path.isdir(path):
             raise UnknownTaskError(tid)
         super(Task, self).__init__(tid, path)
