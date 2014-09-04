@@ -167,6 +167,7 @@ class smaps(ProcessFile):
                 result[pathname][key] = value
         return result
 
+
 class sched(ProcessFile):
     """/proc/<pid>/sched"""
 
@@ -184,3 +185,36 @@ class sched(ProcessFile):
                 value = value.strip()
                 data[name] = value
         return data
+
+
+class stack(ProcessFile):
+    """
+    /proc/<pid>/stack
+    """
+
+    # [[address, func_name, offset, size], ...]
+
+    __re_split = re.compile(r'\[<([0-9a-f]*)>\]\s(.*)\+([x0-9a-f]*)\/([x0-9a-f]*)', re.IGNORECASE)
+
+    def _parse(self, data):
+
+        stack_entries = []
+
+        for line in data.splitlines():
+
+            m = self.__re_split.match(line)
+
+            if m:
+                stack_entries.append(list(m.groups()))
+
+        return stack_entries
+
+
+class syscall(ProcessFile):
+    """
+    /proc/<pid>/syscall
+    """
+
+    def _parse(self, data):
+
+        return data.rstrip().split(' ')
